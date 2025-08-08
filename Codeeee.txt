@@ -1,0 +1,127 @@
+create.php
+
+<?php include "db.php"; ?>
+
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST["name"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+    $age = $_POST["age"];
+
+    $sql = "INSERT INTO users (name, email, password, age) 
+            VALUES ('$name', '$email', '$password', $age)";
+
+    if ($conn->query($sql)) {
+        header("Location: index.php");
+        exit();
+    } else {
+        echo "Error: " . $conn->error;
+    }
+}
+?>
+
+
+<h2>Create New User</h2>
+<form method="POST" action="">
+    Name: <input type="text" name="name" required><br><br>
+    Email: <input type="email" name="email" required><br><br>
+    Password: <input type="password" name="password" required><br><br>
+    Age: <input type="number" name="age" required><br><br>
+    <input type="submit" value="Create">
+</form>
+<a href="index.php">Back</a>
+
+
+db.php
+
+<?php
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db = "crud_db";
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+?>
+
+
+delete.php
+
+<?php
+include "db.php";
+
+$id = $_GET["id"];
+$conn->query("DELETE FROM users WHERE id=$id");
+
+header("Location: index.php");
+exit();
+?>
+
+edit.php
+<?php include "db.php"; ?>
+
+<?php
+$id = $_GET["id"];
+$result = $conn->query("SELECT * FROM users WHERE id=$id");
+$row = $result->fetch_assoc();
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST["name"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+    $age = $_POST["age"];
+
+    $sql = "UPDATE users SET 
+            name='$name', email='$email', password='$password', age=$age 
+            WHERE id=$id";
+
+    if ($conn->query($sql)) {
+        header("Location: index.php");
+        exit();
+    } 
+}
+?>
+
+<h2>Edit User</h2>
+<form method="POST" action="">
+    Name: <input type="text" name="name" value="<?= $row['name'] ?>" required><br><br>
+    Email: <input type="email" name="email" value="<?= $row['email'] ?>" required><br><br>
+    Password: <input type="text" name="password" value="<?= $row['password'] ?>" required><br><br>
+    Age: <input type="number" name="age" value="<?= $row['age'] ?>" required><br><br>
+    <input type="submit" value="Update">
+</form>
+<a href="index.php">Back</a>
+
+index.php
+<?php include "db.php"; ?>
+
+<h2>User List</h2>
+<a href="create.php">+ Add New User</a><br><br>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>ID</th><th>Name</th><th>Email</th><th>Age</th><th>Action</th>
+    </tr>   
+
+    <?php
+    $result = $conn->query("SELECT * FROM users");
+
+    while ($row = $result->fetch_assoc()):
+    ?>
+        <tr>
+            <td><?= $row["id"] ?></td>
+            <td><?= $row["name"] ?></td>
+            <td><?= $row["email"] ?></td>
+            <td><?= $row["age"] ?></td>
+            <td>
+                <a href="edit.php?id=<?= $row["id"] ?>">Edit</a> |
+                <a href="delete.php?id=<?= $row["id"] ?>" onclick="return alert('Delete user?')">Delete</a>
+                
+            </td>
+        </tr>
+    <?php endwhile; ?>
+</table>
